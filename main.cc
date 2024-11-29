@@ -1,46 +1,43 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// Brainfuck 
 
-#include "brainfuck.c"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <unordered_set>
 
-char* readFile(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Error opening file");
-        return NULL;
+#include "brainfuck.cc"
+
+std::string readFile(const char* fileName) {
+    std::ifstream file(fileName);
+    if (!file) {
+        std::cerr << "Error opening file" << std::endl;
     }
 
-    // Move the file pointer to the end of the file to determine its size
-    fseek(file, 0, SEEK_END);
-    long fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET); // Move back to the beginning of the file
+    std::string line;
+    std::string result;
 
-    // Allocate memory for the string (+1 for the null terminator)
-    char* buffer = (char*)malloc(fileSize + 1);
-    if (buffer == NULL) {
-        perror("Error allocating memory");
-        fclose(file);
-        return NULL;
+    while (std::getline(file, line)) {
+        result += line;
     }
 
-    // Read the file into the buffer
-    fread(buffer, 1, fileSize, file);
-    buffer[fileSize] = '\0'; // Null-terminate the string
-
-    fclose(file);
-    return buffer;
+    return result;
 }
 
-int main() {
-    char* fileContent = readFile("example.bf");
-
-    if (fileContent != NULL) {
-
-        run(fileContent);
-
-        free(fileContent); 
+std::string filterString(const std::string& input, const std::unordered_set<char>& allowedChars) {
+    std::string result;
+    for (char c : input) {
+        if (allowedChars.find(c) != allowedChars.end()) {
+            result += c;
+        }
     }
+    return result;    
+}
+
+const std::unordered_set<char> allowedChars = {'>', '<', '+', '-', '.', ',', '[', ']'};
+
+int main() {
+    std::string fileContent = readFile("example.bf");
+    run(filterString(fileContent, allowedChars).c_str());
 
     return 0;
 }
